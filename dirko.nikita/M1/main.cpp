@@ -1,4 +1,23 @@
 #include <iostream>
+#include <vector>
+
+namespace dirko
+{
+  struct point_t
+  {
+    double x, y;
+  };
+
+  struct Circle
+  {
+    double radius;
+    point_t position;
+    Circle(size_t radius, point_t position):
+      radius(radius),
+      position(position)
+    {}
+  };
+}
 
 int main(int argc, char **argv)
 {
@@ -29,5 +48,14 @@ int main(int argc, char **argv)
   } catch (const std::out_of_range &) {
     std::cerr << "Overflow in arguments\n";
     return 1;
+  }
+  std::vector< dirko::Circle > shapes;
+  double radius = 0;
+  double placeHolder = 0;
+  double x = 0;
+  double y = 0;
+  while (std::cin >> radius) {
+    std::cin >> placeHolder >> x >> y;
+    shapes.push_back(dirko::Circle(radius, dirko::point_t{x, y}));
   }
 }
