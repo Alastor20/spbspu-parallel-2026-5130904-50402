@@ -16,6 +16,10 @@ namespace dirko
       radius(radius),
       position(position)
     {}
+    bool isInside(point_t p) const noexcept
+    {
+      return (p.x - position.x) * (p.x - position.x) + (p.y - position.y) * (p.y - position.y) <= radius * radius;
+    }
   };
 }
 
