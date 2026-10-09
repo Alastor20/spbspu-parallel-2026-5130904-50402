@@ -1,4 +1,6 @@
+#include <cstddef>
 #include <iostream>
+#include <random>
 #include <vector>
 
 namespace dirko
@@ -21,6 +23,35 @@ namespace dirko
       return (p.x - position.x) * (p.x - position.x) + (p.y - position.y) * (p.y - position.y) <= radius * radius;
     }
   };
+
+  std::pair< size_t, size_t > calculate(const std::vector< Circle > &circles, point_t min, point_t max, size_t tests,
+                                        size_t seed)
+  {
+    std::default_random_engine gen(seed);
+    std::uniform_real_distribution< double > distX(min.x, max.x);
+    std::uniform_real_distribution< double > distY(min.y, max.y);
+    size_t intersectionCount = 0;
+    size_t combinationCount = 0;
+    for (size_t i = 0; i < tests; i++) {
+      bool isInsideAny = false;
+      bool isInsideAll = true;
+      point_t p{distX(gen), distY(gen)};
+      for (const Circle &circle : circles) {
+        if (circle.isInside(p)) {
+          isInsideAny = true;
+        } else {
+          isInsideAll = false;
+        }
+      }
+      if (isInsideAll) {
+        intersectionCount++;
+      }
+      if (isInsideAny) {
+        combinationCount++;
+      }
+    }
+    return {intersectionCount, combinationCount};
+  }
 }
 
 int main(int argc, char **argv)
