@@ -78,7 +78,7 @@ namespace dirko {
     if (threads == 0) {
       threads = 1;
     }
-    const size_t maxThreads = std::thread::hardware_concurrency();
+    const size_t maxThreads = 12;
     if (threads > maxThreads) {
       threads = maxThreads;
     }
@@ -98,8 +98,8 @@ namespace dirko {
       inters += result.first;
       covers += result.second;
     }
-    const double bordrArea = (border.first.x - border.second.x) * (border.first.y - border.second.y);
-    return {bordrArea * (static_cast< double >(covers) / tests), bordrArea * (static_cast< double >(inters) / tests)};
+    const double borderArea = (border.first.x - border.second.x) * (border.first.y - border.second.y);
+    return {borderArea * (static_cast< double >(covers) / tests), borderArea * (static_cast< double >(inters) / tests)};
   }
 }
 int main(int argc, char **argv)
