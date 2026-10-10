@@ -1,34 +1,42 @@
 #include "area.hpp"
 #include <random>
+#include <cstddef>
 #include <future>
+#include <utility>
+#include <limits>
+#include <algorithm>
 #include <vector>
+#include <stdexcept>
+#include <functional>
+#include "shapes.hpp"
+
 std::pair< size_t, size_t > dirko::calculate(
     const circles_t &circles, point_t min, point_t max, size_t tests, size_t seed)
 {
   std::default_random_engine gen(seed);
-  std::uniform_real_distribution< double > distX(min.x, max.x);
-  std::uniform_real_distribution< double > distY(min.y, max.y);
-  size_t intersectionCount = 0;
-  size_t combinationCount = 0;
+  std::uniform_real_distribution< double > dist_x(min.x, max.x);
+  std::uniform_real_distribution< double > dist_y(min.y, max.y);
+  size_t intersection_count = 0;
+  size_t combination_count = 0;
   for (size_t i = 0; i < tests; i++) {
-    bool isInsideAny = false;
-    bool isInsideAll = true;
-    point_t p{distX(gen), distY(gen)};
+    bool is_inside_any = false;
+    bool is_inside_all = true;
+    const point_t p{dist_x(gen), dist_y(gen)};
     for (const Circle &circle : circles) {
       if (circle.isInside(p)) {
-        isInsideAny = true;
+        is_inside_any = true;
       } else {
-        isInsideAll = false;
+        is_inside_all = false;
       }
     }
-    if (isInsideAll) {
-      intersectionCount++;
+    if (is_inside_all) {
+      intersection_count++;
     }
-    if (isInsideAny) {
-      combinationCount++;
+    if (is_inside_any) {
+      combination_count++;
     }
   }
-  return {intersectionCount, combinationCount};
+  return {intersection_count, combination_count};
 }
 std::pair< dirko::point_t, dirko::point_t > dirko::getBorders(const circles_t &circles)
 {

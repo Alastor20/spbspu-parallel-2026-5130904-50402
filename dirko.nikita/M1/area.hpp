@@ -1,5 +1,7 @@
 #ifndef AREA_HPP
 #define AREA_HPP
+#include <cstddef>
+#include <utility>
 #include "shapes.hpp"
 namespace dirko {
   std::pair< size_t, size_t > calculate(const circles_t &circles, point_t min, point_t max, size_t tests, size_t seed);

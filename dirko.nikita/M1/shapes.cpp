@@ -1,4 +1,5 @@
 #include "shapes.hpp"
+#include <cstddef>
 
 dirko::Circle::Circle(size_t radius, point_t position):
   radius(radius),
