@@ -1,17 +1,15 @@
 #include <cstddef>
 #include <iostream>
 #include <random>
+#include <utility>
 #include <vector>
 
-namespace dirko
-{
-  struct point_t
-  {
+namespace dirko {
+  struct point_t {
     double x, y;
   };
 
-  struct Circle
-  {
+  struct Circle {
     double radius;
     point_t position;
     Circle(size_t radius, point_t position):
@@ -23,9 +21,8 @@ namespace dirko
       return (p.x - position.x) * (p.x - position.x) + (p.y - position.y) * (p.y - position.y) <= radius * radius;
     }
   };
-
-  std::pair< size_t, size_t > calculate(const std::vector< Circle > &circles, point_t min, point_t max, size_t tests,
-                                        size_t seed)
+  using circles_t = std::vector< Circle >;
+  std::pair< size_t, size_t > calculate(const circles_t &circles, point_t min, point_t max, size_t tests, size_t seed)
   {
     std::default_random_engine gen(seed);
     std::uniform_real_distribution< double > distX(min.x, max.x);
@@ -52,8 +49,22 @@ namespace dirko
     }
     return {intersectionCount, combinationCount};
   }
+  std::pair< point_t, point_t > getBorders(const circles_t &circles)
+  {
+    const double inf = std::numeric_limits< double >::infinity();
+    point_t max{-inf, -inf};
+    point_t min{inf, inf};
+    for (const Circle &circle : circles) {
+      const point_t circleMax = {circle.position.x + circle.radius, circle.position.y + circle.radius};
+      const point_t circleMin = {circle.position.x - circle.radius, circle.position.y - circle.radius};
+      max.x = std::max(max.x, circleMax.x);
+      max.y = std::max(max.y, circleMax.y);
+      min.x = std::min(min.x, circleMin.x);
+      min.y = std::min(min.y, circleMin.y);
+    }
+    return {max, min};
+  }
 }
-
 int main(int argc, char **argv)
 {
   if (argc != 3 && argc != 4) {
@@ -89,8 +100,11 @@ int main(int argc, char **argv)
   double placeHolder = 0;
   double x = 0;
   double y = 0;
-  while (std::cin >> radius) {
-    std::cin >> placeHolder >> x >> y;
+  while (std::cin >> radius >> placeHolder >> x >> y) {
     shapes.push_back(dirko::Circle(radius, dirko::point_t{x, y}));
+  }
+  if (!std::cin.eof()) {
+    std::cerr << "Invalid input\n";
+    return 1;
   }
 }
