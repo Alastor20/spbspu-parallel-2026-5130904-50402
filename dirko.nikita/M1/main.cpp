@@ -1,6 +1,8 @@
 #include <cstddef>
+#include <future>
 #include <iostream>
 #include <random>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -63,6 +65,41 @@ namespace dirko {
       min.y = std::min(min.y, circleMin.y);
     }
     return {max, min};
+  }
+
+  std::pair< double, double > area(const circles_t &circles, size_t threads, size_t tests, size_t seed)
+  {
+    if (!tests) {
+      throw std::invalid_argument("zero tests");
+    }
+    if (circles.empty()) {
+      return {0.0, 0.0};
+    }
+    if (threads == 0) {
+      threads = 1;
+    }
+    const size_t maxThreads = std::thread::hardware_concurrency();
+    if (threads > maxThreads) {
+      threads = maxThreads;
+    }
+    std::vector< std::future< std::pair< size_t, size_t > > > futures;
+    const size_t testsPerThread = tests / threads;
+    const size_t remainder = tests % threads;
+    const std::pair< point_t, point_t > border = getBorders(circles);
+    for (size_t i = 0; i < threads; i++) {
+      const size_t part = i < remainder ? testsPerThread + 1 : testsPerThread;
+      futures.push_back(
+          std::async(std::launch::async, calculate, std::cref(circles), border.first, border.second, part, seed + i));
+    }
+    size_t inters = 0;
+    size_t covers = 0;
+    for (auto &future : futures) {
+      const std::pair< size_t, size_t > result = future.get();
+      inters += result.first;
+      covers += result.second;
+    }
+    const double bordrArea = (border.first.x - border.second.x) * (border.first.y - border.second.y);
+    return {bordrArea * (static_cast< double >(covers) / tests), bordrArea * (static_cast< double >(inters) / tests)};
   }
 }
 int main(int argc, char **argv)
