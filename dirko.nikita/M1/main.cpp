@@ -89,7 +89,7 @@ namespace dirko {
     for (size_t i = 0; i < threads; i++) {
       const size_t part = i < remainder ? testsPerThread + 1 : testsPerThread;
       futures.push_back(
-          std::async(std::launch::async, calculate, std::cref(circles), border.first, border.second, part, seed + i));
+          std::async(std::launch::async, calculate, std::cref(circles), border.second, border.first, part, seed + i));
     }
     size_t inters = 0;
     size_t covers = 0;
