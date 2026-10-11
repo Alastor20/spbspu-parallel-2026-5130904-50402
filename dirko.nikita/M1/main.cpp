@@ -39,12 +39,16 @@ int main(int argc, char **argv)
     return 1;
   }
   std::vector< std::unique_ptr< dirko::Shape > > shapes;
-  double radius = 0;
-  double place_holder = 0;
+  double horizontal_radius = 0;
+  double vertical_radius = 0;
   double x = 0;
   double y = 0;
-  while (std::cin >> radius >> place_holder >> x >> y) {
-    shapes.push_back(std::make_unique< dirko::Circle >(radius, dirko::point_t{x, y}));
+  while (std::cin >> horizontal_radius >> vertical_radius >> x >> y) {
+    if (vertical_radius) {
+      shapes.push_back(std::make_unique< dirko::Ellipse >(horizontal_radius, vertical_radius, dirko::point_t{x, y}));
+    } else {
+      shapes.push_back(std::make_unique< dirko::Circle >(horizontal_radius, dirko::point_t{x, y}));
+    }
   }
   if (!std::cin.eof()) {
     std::cerr << "Invalid input\n";

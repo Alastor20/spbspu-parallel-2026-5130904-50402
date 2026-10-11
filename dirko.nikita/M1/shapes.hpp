@@ -1,8 +1,6 @@
 #ifndef SHAPES_HPP
 #define SHAPES_HPP
 #include <cstddef>
-#include <memory>
-#include <vector>
 namespace dirko {
   struct point_t {
     double x, y;
@@ -16,7 +14,7 @@ namespace dirko {
   };
   class Circle final: public Shape {
   public:
-    Circle(size_t radius, point_t position);
+    Circle(size_t, point_t);
     bool isInside(point_t) const noexcept;
     point_t getMaxCorner() const noexcept;
     point_t getMinCorner() const noexcept;
@@ -24,6 +22,17 @@ namespace dirko {
     double radius_;
     point_t position_;
   };
-  using shapes_t = std::vector< std::unique_ptr< Shape > >;
+  class Ellipse final: public Shape {
+  public:
+    Ellipse(double, double, point_t) noexcept;
+    bool isInside(point_t) const noexcept override;
+    point_t getMinCorner() const noexcept override;
+    point_t getMaxCorner() const noexcept override;
+
+  private:
+    double horizontal_radius_;
+    double vertical_radius_;
+    point_t position_;
+  };
 }
 #endif
