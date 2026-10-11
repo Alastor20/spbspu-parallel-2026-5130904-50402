@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <utility>
 #include <string>
 #include <stdexcept>
@@ -37,13 +38,13 @@ int main(int argc, char **argv)
     std::cerr << "Overflow in arguments\n";
     return 1;
   }
-  std::vector< dirko::Circle > circles;
+  std::vector< std::unique_ptr< dirko::Shape > > shapes;
   double radius = 0;
   double place_holder = 0;
   double x = 0;
   double y = 0;
   while (std::cin >> radius >> place_holder >> x >> y) {
-    circles.push_back(dirko::Circle(radius, dirko::point_t{x, y}));
+    shapes.push_back(std::make_unique< dirko::Circle >(radius, dirko::point_t{x, y}));
   }
   if (!std::cin.eof()) {
     std::cerr << "Invalid input\n";
@@ -51,7 +52,7 @@ int main(int argc, char **argv)
   }
   std::pair< double, double > areas{0.0, 0.0};
   try {
-    areas = dirko::area(circles, threads, tries, seed);
+    areas = dirko::area(shapes, threads, tries, seed);
   } catch (const std::invalid_argument &e) {
     std::cerr << e.what() << '\n';
     return 1;
