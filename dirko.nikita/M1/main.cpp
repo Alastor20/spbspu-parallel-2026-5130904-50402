@@ -5,8 +5,8 @@
 #include <stdexcept>
 #include <vector>
 #include <cstddef>
-#include "area.hpp"
-#include "shapes.hpp"
+#include "../common/area.hpp"
+#include "../common/shapes.hpp"
 
 int main(int argc, char **argv)
 {
