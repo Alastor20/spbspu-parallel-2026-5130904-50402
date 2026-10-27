@@ -1,56 +1,27 @@
 #include "shapes.hpp"
-#include <cstddef>
 
-dirko::Circle::Circle(size_t radius, point_t position):
-  radius_(radius),
-  position_(position)
-{}
-bool dirko::Circle::isInside(point_t point) const noexcept
+bool dirko::contains(const shape_t &shape, point_t point) noexcept
 {
-  const double dx = point.x - position_.x;
-  const double dy = point.y - position_.y;
-  return dx * dx + dy * dy <= radius_ * radius_;
-}
-dirko::point_t dirko::Circle::getMaxCorner() const noexcept
-{
-  return {position_.x + radius_, position_.y + radius_};
-}
-dirko::point_t dirko::Circle::getMinCorner() const noexcept
-{
-  return {position_.x - radius_, position_.y - radius_};
+  const double dx = point.x - shape.position.x;
+  const double dy = point.y - shape.position.y;
+
+  const double rx2 = shape.rx * shape.rx;
+
+  if (shape.type == shapeType::CIRCLE) {
+    return dx * dx + dy * dy <= rx2;
+  }
+
+  const double ry2 = shape.ry * shape.ry;
+
+  return dx * dx * ry2 + dy * dy * rx2 <= rx2 * ry2;
 }
 
-dirko::ShapeType dirko::Circle::getShape() const noexcept
+dirko::point_t dirko::getMinCorner(const shape_t &shape) noexcept
 {
-  return ShapeType::CIRCLE;
+  return {shape.position.x - shape.rx, shape.position.y - shape.ry};
 }
 
-dirko::Ellipse::Ellipse(double horizontal_radius, double vertical_radius, dirko::point_t position) noexcept:
-  horizontal_radius_(horizontal_radius),
-  vertical_radius_(vertical_radius),
-  position_(position)
-{}
-
-bool dirko::Ellipse::isInside(dirko::point_t point) const noexcept
+dirko::point_t dirko::getMaxCorner(const shape_t &shape) noexcept
 {
-  const double dx = point.x - position_.x;
-  const double dy = point.y - position_.y;
-  const double a2 = horizontal_radius_ * horizontal_radius_;
-  const double b2 = vertical_radius_ * vertical_radius_;
-  return dx * dx * b2 + dy * dy * a2 <= a2 * b2;
-}
-
-dirko::point_t dirko::Ellipse::getMinCorner() const noexcept
-{
-  return {position_.x - horizontal_radius_, position_.y - vertical_radius_};
-}
-
-dirko::point_t dirko::Ellipse::getMaxCorner() const noexcept
-{
-  return {position_.x + horizontal_radius_, position_.y + vertical_radius_};
-}
-
-dirko::ShapeType dirko::Ellipse::getShape() const noexcept
-{
-  return ShapeType::ELLIPSE;
+  return {shape.position.x + shape.rx, shape.position.y + shape.ry};
 }

@@ -1,9 +1,7 @@
 #include <iostream>
-#include <memory>
 #include <utility>
 #include <string>
 #include <stdexcept>
-#include <vector>
 #include <cstddef>
 #include "../common/area.hpp"
 #include "../common/shapes.hpp"
@@ -38,16 +36,16 @@ int main(int argc, char **argv)
     std::cerr << "Overflow in arguments\n";
     return 1;
   }
-  std::vector< std::unique_ptr< dirko::Shape > > shapes;
+  dirko::shapes_t shapes;
   double horizontal_radius = 0;
   double vertical_radius = 0;
   double x = 0;
   double y = 0;
   while (std::cin >> horizontal_radius >> vertical_radius >> x >> y) {
     if (vertical_radius) {
-      shapes.push_back(std::make_unique< dirko::Ellipse >(horizontal_radius, vertical_radius, dirko::point_t{x, y}));
+      shapes.push_back({dirko::shapeType::ELLIPSE, horizontal_radius, vertical_radius, {x, y}});
     } else {
-      shapes.push_back(std::make_unique< dirko::Circle >(horizontal_radius, dirko::point_t{x, y}));
+      shapes.push_back({dirko::shapeType::CIRCLE, horizontal_radius, horizontal_radius, {x, y}});
     }
   }
   if (!std::cin.eof()) {
