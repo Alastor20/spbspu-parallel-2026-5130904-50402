@@ -19,6 +19,12 @@ dirko::point_t dirko::Circle::getMinCorner() const noexcept
 {
   return {position_.x - radius_, position_.y - radius_};
 }
+
+dirko::ShapeType dirko::Circle::getShape() const noexcept
+{
+  return ShapeType::CIRCLE;
+}
+
 dirko::Ellipse::Ellipse(double horizontal_radius, double vertical_radius, dirko::point_t position) noexcept:
   horizontal_radius_(horizontal_radius),
   vertical_radius_(vertical_radius),
@@ -42,4 +48,9 @@ dirko::point_t dirko::Ellipse::getMinCorner() const noexcept
 dirko::point_t dirko::Ellipse::getMaxCorner() const noexcept
 {
   return {position_.x + horizontal_radius_, position_.y + vertical_radius_};
+}
+
+dirko::ShapeType dirko::Ellipse::getShape() const noexcept
+{
+  return ShapeType::ELLIPSE;
 }

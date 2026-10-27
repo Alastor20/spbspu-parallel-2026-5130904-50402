@@ -12,25 +12,44 @@
 
 namespace dirko {
   namespace {
-    struct borders_t {
-      dirko::point_t max, min;
-    };
     std::pair< size_t, size_t > calculate(const shapes_t &shapes, point_t max, point_t min, size_t tests, size_t seed)
     {
+      const bool one_circle = shapes.size() == 1 && shapes.front()->getShape() == ShapeType::CIRCLE;
       std::default_random_engine gen(seed);
       std::uniform_real_distribution< double > dist_x(min.x, max.x);
       std::uniform_real_distribution< double > dist_y(min.y, max.y);
+
+      const double engine_min = static_cast< double >(gen.min());
+      const double engine_range = static_cast< double >(gen.max()) - engine_min;
+      const double kx = (max.x - min.x) / engine_range;
+      const double ky = (max.y - min.y) / engine_range;
       size_t intersection_count = 0;
       size_t combination_count = 0;
+
       for (size_t i = 0; i < tests; i++) {
+        point_t point;
+
+        if (one_circle) {
+          point.x = min.x + (static_cast< double >(gen()) - engine_min) * kx;
+          point.y = min.y + (static_cast< double >(gen()) - engine_min) * ky;
+        } else {
+          point.x = dist_x(gen);
+          point.y = dist_y(gen);
+        }
+
         bool is_inside_any = false;
         bool is_inside_all = true;
-        const point_t p{dist_x(gen), dist_y(gen)};
+
         for (const auto &shape : shapes) {
-          if (shape->isInside(p)) {
-            is_inside_any = true;
-          } else {
-            is_inside_all = false;
+          bool inside = false;
+
+          inside = shape->isInside(point);
+
+          is_inside_any = is_inside_any || inside;
+          is_inside_all = is_inside_all && inside;
+
+          if (is_inside_any && !is_inside_all) {
+            break;
           }
         }
         if (is_inside_all) {
