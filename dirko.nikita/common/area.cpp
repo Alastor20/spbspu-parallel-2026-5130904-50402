@@ -14,7 +14,7 @@ namespace dirko {
   namespace {
     std::pair< size_t, size_t > calculate(const shapes_t &shapes, point_t max, point_t min, size_t tests, size_t seed)
     {
-      const bool one_circle = shapes.size() == 1 && shapes.front()->getShape() == ShapeType::CIRCLE;
+      const bool one_circle = shapes.size() == 1 && shapes.front().type == shapeType::CIRCLE;
       std::default_random_engine gen(seed);
       std::uniform_real_distribution< double > dist_x(min.x, max.x);
       std::uniform_real_distribution< double > dist_y(min.y, max.y);
@@ -43,7 +43,7 @@ namespace dirko {
         for (const auto &shape : shapes) {
           bool inside = false;
 
-          inside = shape->isInside(point);
+          inside = contains(shape, point);
 
           is_inside_any = is_inside_any || inside;
           is_inside_all = is_inside_all && inside;
@@ -67,8 +67,8 @@ namespace dirko {
       point_t max{-inf, -inf};
       point_t min{inf, inf};
       for (const auto &shape : shapes) {
-        const point_t shapeMax = shape->getMaxCorner();
-        const point_t shapeMin = shape->getMinCorner();
+        const point_t shapeMax = getMaxCorner(shape);
+        const point_t shapeMin = getMinCorner(shape);
         max.x = std::max(max.x, shapeMax.x);
         max.y = std::max(max.y, shapeMax.y);
         min.x = std::min(min.x, shapeMin.x);
