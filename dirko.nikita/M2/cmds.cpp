@@ -1,4 +1,5 @@
 #include "cmds.hpp"
+#include <map>
 #include <stdexcept>
 #include <string>
 #include <iostream>
@@ -7,18 +8,18 @@
 namespace dirko {
 
   namespace {
-    std::ostream &operator<<(std::ostream &out, dirko::point_t p)
+    std::ostream &operator<<(std::ostream &out, dirko::point_t point)
     {
-      return out << "(" << p.x << " " << p.y << ")";
+      return out << "(" << point.x << " " << point.y << ")";
     }
 
-    void printShape(std::ostream &out, const dirko::shape_t &sh)
+    void printShape(std::ostream &out, const dirko::shape_t &shape)
     {
       using namespace dirko;
-      if (sh.type == shapeType::CIRCLE) {
-        out << sh.rx << " " << sh.position << "\n";
+      if (shape.type == shapeType::CIRCLE) {
+        out << shape.rx << " " << shape.position << "\n";
       } else {
-        out << sh.rx << " " << sh.ry << " " << sh.position << "\n";
+        out << shape.rx << " " << shape.ry << " " << shape.position << "\n";
       }
     }
   }
@@ -90,8 +91,8 @@ namespace dirko {
     if (it == data.sets.end()) {
       throw std::invalid_argument("invalid");
     }
-    for (const auto &s : it->second) {
-      printShape(out, data.shapes.at(s));
+    for (const std::string &shape_name : it->second) {
+      printShape(out, data.shapes.at(shape_name));
     }
   }
 
@@ -105,9 +106,9 @@ namespace dirko {
     if (it == data.shapes.end()) {
       throw std::invalid_argument("invalid");
     }
-    const point_t mn = getMinCorner(it->second);
-    const point_t mx = getMaxCorner(it->second);
-    out << mn << " " << mx << "\n";
+    const point_t min_point = getMinCorner(it->second);
+    const point_t max_point = getMaxCorner(it->second);
+    out << min_point << " " << max_point << "\n";
   }
 
   void cmdFrameSet(std::istream &in, std::ostream &out, Data &data)
@@ -121,18 +122,18 @@ namespace dirko {
       throw std::invalid_argument("invalid");
     }
 
-    point_t mn = getMinCorner(data.shapes.at(it->second.front()));
-    point_t mx = getMaxCorner(data.shapes.at(it->second.front()));
-    for (const auto &s : it->second) {
-      const shape_t &sh = data.shapes.at(s);
-      const point_t a = getMinCorner(sh);
-      const point_t b = getMaxCorner(sh);
-      mn.x = std::min(mn.x, a.x);
-      mn.y = std::min(mn.y, a.y);
-      mx.x = std::max(mx.x, b.x);
-      mx.y = std::max(mx.y, b.y);
+    point_t min_point = getMinCorner(data.shapes.at(it->second.front()));
+    point_t max_point = getMaxCorner(data.shapes.at(it->second.front()));
+    for (const std::string &shape_name : it->second) {
+      const shape_t &shape = data.shapes.at(shape_name);
+      const point_t a = getMinCorner(shape);
+      const point_t b = getMaxCorner(shape);
+      min_point.x = std::min(min_point.x, a.x);
+      min_point.y = std::min(min_point.y, a.y);
+      max_point.x = std::max(max_point.x, b.x);
+      max_point.y = std::max(max_point.y, b.y);
     }
-    out << mn << " " << mx << "\n";
+    out << min_point << " " << max_point << "\n";
   }
 
 }
