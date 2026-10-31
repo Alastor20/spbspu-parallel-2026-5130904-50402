@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include "../common/shapes.hpp"
+#include "worker.hpp"
 
 namespace dirko {
   using Set = std::vector< std::string >;
@@ -13,6 +14,7 @@ namespace dirko {
   struct Data {
     std::map< std::string, shape_t > shapes;
     std::map< std::string, Set > sets;
+    std::map< std::string, Worker > workers;
   };
 
   void cmdCircle(std::istream &, std::ostream &, Data &);
@@ -21,5 +23,6 @@ namespace dirko {
   void cmdShowSet(std::istream &, std::ostream &, Data &);
   void cmdFrame(std::istream &, std::ostream &, Data &);
   void cmdFrameSet(std::istream &, std::ostream &, Data &);
+  void cmdSpawn(std::istream &, std::ostream &, Data &);
 }
 #endif
