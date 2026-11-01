@@ -1,5 +1,7 @@
 #include "cmds.hpp"
 #include <cstddef>
+#include <iomanip>
+#include <thread>
 #include <unistd.h>
 #include <fcntl.h>
 #include <map>
@@ -66,6 +68,41 @@ namespace dirko {
         throw std::invalid_argument("invalid");
       }
       return value;
+    }
+
+    void updateStates(Data &data)
+    {
+      for (auto &workerIt : data.workers) {
+        Worker &worker = workerIt.second;
+        while (worker.output >= 0) {
+          Result s{};
+          const size_t n = read(worker.output, &s, sizeof(s));
+          if (n == (sizeof(s))) {
+            for (auto &calcIt : data.calcs) {
+              Calc &calc = calcIt.second;
+              if (calc.calc_id == s.calc_id && calc.state == CalcState::WORKING) {
+                calc.state = CalcState::DONE;
+                calc.ms = s.ms;
+                calc.area = s.area;
+              }
+            }
+            continue;
+          }
+          if (n == 0) {
+            close(worker.output);
+            worker.output = -1;
+          }
+          break;
+        }
+      }
+    }
+    void printStatus(std::ostream &out, const Calc &calc)
+    {
+      if (calc.state == CalcState::DONE) {
+        out << calc.proc << " " << std::fixed << std::setprecision(3) << calc.ms << " " << calc.area << "\n";
+      } else {
+        out << calc.proc << " <IN PROGRESS>\n";
+      }
     }
   }
 
@@ -252,5 +289,67 @@ namespace dirko {
     w.input = pipe_in[1];
     w.output = pipe_out[0];
     data.workers[name] = w;
+  }
+
+  void cmdAreaOn(std::istream &in, std::ostream &, Data &data)
+  {
+    constexpr int AREA_ARGS_AMOUNT = 5;
+    std::vector< std::string > args = readArgs(in);
+    if (args.size() != AREA_ARGS_AMOUNT) {
+      throw std::invalid_argument("invalid");
+    }
+
+    const std::string &proc = args[0];
+    const std::string &calc = args[1];
+    const std::string &setName = args[2];
+
+    const size_t threads = parseSize(args[3]);
+    const size_t tries = parseSize(args[4]);
+
+    if (threads == 0 || tries == 0) {
+      throw std::invalid_argument("invalid");
+    }
+
+    auto workerIter = data.workers.find(proc);
+    if (workerIter == data.workers.end()) {
+      throw std::invalid_argument("invalid");
+    }
+
+    auto setIter = data.sets.find(setName);
+    if (setIter == data.sets.end()) {
+      throw std::invalid_argument("invalid");
+    }
+
+    if (data.calcs.count(calc)) {
+      throw std::invalid_argument("invalid");
+    }
+
+    std::vector< shape_t > sended_shapes;
+    sended_shapes.reserve(setIter->second.size());
+
+    for (const std::string &name : setIter->second) {
+      sended_shapes.push_back(data.shapes.at(name));
+    }
+
+    const size_t calc_id = data.next_calc_id++;
+    size_t send_data[4] = {calc_id, threads, tries, sended_shapes.size()};
+
+    int err = 0;
+    send(err, workerIter->second.input, send_data, sizeof(send_data));
+
+    if (err <= 0) {
+      throw std::invalid_argument("write");
+    }
+
+    if (!sended_shapes.empty()) {
+      send(err, workerIter->second.input, sended_shapes.data(), sended_shapes.size() * sizeof(shape_t));
+
+      if (err <= 0) {
+        throw std::invalid_argument("write");
+      }
+    }
+
+    Calc c{proc, calc_id};
+    data.calcs[calc] = c;
   }
 }

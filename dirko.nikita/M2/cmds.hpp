@@ -10,11 +10,23 @@
 
 namespace dirko {
   using Set = std::vector< std::string >;
-
+  enum class CalcState {
+    WORKING,
+    DONE,
+  };
+  struct Calc {
+    std::string proc;
+    size_t calc_id = 0;
+    CalcState state = CalcState::WORKING;
+    double ms = 0.0;
+    double area = 0.0;
+  };
   struct Data {
     std::map< std::string, shape_t > shapes;
     std::map< std::string, Set > sets;
     std::map< std::string, Worker > workers;
+    std::map< std::string, Calc > calcs;
+    size_t next_calc_id = 0;
   };
 
   void cmdCircle(std::istream &, std::ostream &, Data &);
@@ -24,5 +36,8 @@ namespace dirko {
   void cmdFrame(std::istream &, std::ostream &, Data &);
   void cmdFrameSet(std::istream &, std::ostream &, Data &);
   void cmdSpawn(std::istream &, std::ostream &, Data &);
+  void cmdAreaOn(std::istream &, std::ostream &, Data &);
+  void cmdStatus(std::istream &, std::ostream &, Data &);
+  void cmdWait(std::istream &, std::ostream &, Data &);
 }
 #endif
