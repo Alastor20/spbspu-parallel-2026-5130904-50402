@@ -113,49 +113,60 @@ namespace dirko {
         out << calc.proc << " <IN PROGRESS>\n";
       }
     }
+    bool validName(const std::string &name)
+    {
+      return !name.empty() && ((name[0] >= 'a' && name[0] <= 'z') || (name[0] >= 'A' && name[0] <= 'Z'));
+    }
   }
 
   void cmdCircle(std::istream &in, std::ostream &, Data &data)
   {
-    std::string name;
-    double r = 0.0, x = 0.0, y = 0.0;
-    if (!(in >> name >> r >> x >> y)) {
+    std::vector< std::string > args = readArgs(in);
+    if (args.size() != 4) {
       throw std::invalid_argument("invalid");
     }
-    if (data.shapes.count(name)) {
+    const std::string &name = args[0];
+    const double r = std::stod(args[1]);
+    const double x = std::stod(args[2]);
+    const double y = std::stod(args[3]);
+    if (!validName(name) || r <= 0 || data.shapes.count(name)) {
       throw std::invalid_argument("invalid");
-    }
-    if (r <= 0) {
-      throw std::invalid_argument("circle");
     }
     data.shapes[name] = {shapeType::CIRCLE, r, r, {x, y}};
   }
 
   void cmdSet(std::istream &in, std::ostream &, Data &data)
   {
-    std::string name;
-    size_t n = 0;
-    if (!(in >> name >> n)) {
+    std::vector< std::string > args = readArgs(in);
+
+    if (args.size() < 2) {
       throw std::invalid_argument("invalid");
     }
-    if (n == 0) {
+
+    const std::string &name = args[0];
+    const size_t n = parseSize(args[1]);
+
+    if (!validName(name) || n == 0 || data.sets.count(name)) {
       throw std::invalid_argument("invalid");
     }
-    if (data.sets.count(name)) {
+
+    if (args.size() != n + 2) {
       throw std::invalid_argument("invalid");
     }
+
     Set s;
     s.reserve(n);
+
     for (size_t i = 0; i < n; ++i) {
-      std::string shape;
-      if (!(in >> shape)) {
-        throw std::invalid_argument("invalid");
-      }
+      const std::string &shape = args[i + 2];
+
       if (!data.shapes.count(shape)) {
         throw std::invalid_argument("invalid");
       }
-      s.push_back(std::move(shape));
+
+      s.push_back(shape);
     }
+
     data.sets[name] = std::move(s);
   }
 
