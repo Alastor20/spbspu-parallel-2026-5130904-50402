@@ -352,4 +352,44 @@ namespace dirko {
     Calc c{proc, calc_id};
     data.calcs[calc] = c;
   }
+
+  void cmdStatus(std::istream &in, std::ostream &out, Data &data)
+  {
+    std::vector< std::string > args = readArgs(in);
+    if (args.size() != 1) {
+      throw std::invalid_argument("invalid");
+    }
+
+    auto it = data.calcs.find(args[0]);
+    if (it == data.calcs.end()) {
+      throw std::invalid_argument("invalid");
+    }
+    updateStates(data);
+    printStatus(out, it->second);
+  }
+
+  void cmdWait(std::istream &in, std::ostream &out, Data &data)
+  {
+    std::vector< std::string > args = readArgs(in);
+    if (args.size() != 1) {
+      throw std::invalid_argument("invalid");
+    }
+
+    auto it = data.calcs.find(args[0]);
+    if (it == data.calcs.end()) {
+      throw std::invalid_argument("invalid");
+    }
+
+    while (it->second.state != CalcState::DONE) {
+      updateStates(data);
+
+      if (it->second.state == CalcState::DONE) {
+        break;
+      }
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    printStatus(out, it->second);
+  }
 }
