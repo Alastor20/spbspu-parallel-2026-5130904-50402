@@ -1,8 +1,13 @@
 #include "cmds.hpp"
 #include <cstddef>
+#include <chrono>
 #include <iomanip>
 #include <thread>
+#include <cctype>
+#include <utility>
+#include <algorithm>
 #include <unistd.h>
+#include <sys/types.h>
 #include <fcntl.h>
 #include <map>
 #include <stdexcept>
@@ -10,6 +15,7 @@
 #include <iostream>
 #include <vector>
 #include "../common/shapes.hpp"
+#include "worker.hpp"
 
 namespace dirko {
 
@@ -61,25 +67,28 @@ namespace dirko {
       if (token.empty() || token[0] == '-') {
         throw std::invalid_argument("invalid");
       }
-
-      std::size_t pos = 0;
-      const size_t value = std::stoull(token, &pos, 10);
-      if (pos != token.size()) {
+      try {
+        std::size_t pos = 0;
+        const size_t value = std::stoull(token, &pos, 10);
+        if (pos != token.size()) {
+          throw std::invalid_argument("invalid");
+        }
+        return value;
+      } catch (const std::out_of_range &) {
         throw std::invalid_argument("invalid");
       }
-      return value;
     }
 
     void updateStates(Data &data)
     {
-      for (auto &workerIt : data.workers) {
-        Worker &worker = workerIt.second;
+      for (auto &worker_it : data.workers) {
+        Worker &worker = worker_it.second;
         while (worker.output >= 0) {
           Result s{};
           const size_t n = read(worker.output, &s, sizeof(s));
           if (n == (sizeof(s))) {
-            for (auto &calcIt : data.calcs) {
-              Calc &calc = calcIt.second;
+            for (auto &calc_it : data.calcs) {
+              Calc &calc = calc_it.second;
               if (calc.calc_id == s.calc_id && calc.state == CalcState::WORKING) {
                 calc.state = CalcState::DONE;
                 calc.ms = s.ms;
@@ -301,7 +310,7 @@ namespace dirko {
 
     const std::string &proc = args[0];
     const std::string &calc = args[1];
-    const std::string &setName = args[2];
+    const std::string &set_name = args[2];
 
     const size_t threads = parseSize(args[3]);
     const size_t tries = parseSize(args[4]);
@@ -310,13 +319,13 @@ namespace dirko {
       throw std::invalid_argument("invalid");
     }
 
-    auto workerIter = data.workers.find(proc);
-    if (workerIter == data.workers.end()) {
+    auto worker_iter = data.workers.find(proc);
+    if (worker_iter == data.workers.end()) {
       throw std::invalid_argument("invalid");
     }
 
-    auto setIter = data.sets.find(setName);
-    if (setIter == data.sets.end()) {
+    auto set_iter = data.sets.find(set_name);
+    if (set_iter == data.sets.end()) {
       throw std::invalid_argument("invalid");
     }
 
@@ -325,9 +334,9 @@ namespace dirko {
     }
 
     std::vector< shape_t > sended_shapes;
-    sended_shapes.reserve(setIter->second.size());
+    sended_shapes.reserve(set_iter->second.size());
 
-    for (const std::string &name : setIter->second) {
+    for (const std::string &name : set_iter->second) {
       sended_shapes.push_back(data.shapes.at(name));
     }
 
@@ -335,21 +344,23 @@ namespace dirko {
     size_t send_data[4] = {calc_id, threads, tries, sended_shapes.size()};
 
     int err = 0;
-    send(err, workerIter->second.input, send_data, sizeof(send_data));
+    send(err, worker_iter->second.input, send_data, sizeof(send_data));
 
     if (err <= 0) {
       throw std::invalid_argument("write");
     }
 
     if (!sended_shapes.empty()) {
-      send(err, workerIter->second.input, sended_shapes.data(), sended_shapes.size() * sizeof(shape_t));
+      send(err, worker_iter->second.input, sended_shapes.data(), sended_shapes.size() * sizeof(shape_t));
 
       if (err <= 0) {
         throw std::invalid_argument("write");
       }
     }
 
-    Calc c{proc, calc_id};
+    Calc c{};
+    c.proc = proc;
+    c.calc_id = calc_id;
     data.calcs[calc] = c;
   }
 
