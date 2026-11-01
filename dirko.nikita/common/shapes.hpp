@@ -7,7 +7,10 @@ namespace dirko {
   struct borders_t {
     dirko::point_t max, min;
   };
-  enum class shapeType { CIRCLE, ELLIPSE };
+  enum class shapeType {
+    CIRCLE,
+    ELLIPSE,
+  };
   struct shape_t {
     shapeType type;
     double rx;
