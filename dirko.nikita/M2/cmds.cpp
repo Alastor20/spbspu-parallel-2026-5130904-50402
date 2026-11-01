@@ -352,10 +352,10 @@ namespace dirko {
     }
 
     const size_t calc_id = data.next_calc_id++;
-    size_t send_data[4] = {calc_id, threads, tries, sended_shapes.size()};
+    size_t header[4] = {calc_id, threads, tries, sended_shapes.size()};
 
     int err = 0;
-    send(err, worker_iter->second.input, send_data, sizeof(send_data));
+    send(err, worker_iter->second.input, header, sizeof(header));
 
     if (err <= 0) {
       throw std::invalid_argument("write");
